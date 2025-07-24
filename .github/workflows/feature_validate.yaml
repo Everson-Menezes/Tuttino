@@ -44,6 +44,14 @@ jobs:
               exit 0
             fi
 
+            # Garante que a label auto-pullrequet existe
+            if ! gh label view auto-pullrequet >/dev/null 2>&1; then
+              echo "⚙️ Label 'auto-pullrequet' não encontrada. Criando..."
+              gh label create auto-pullrequet --color F1C40F --description "Auto generated PRs"
+            else
+              echo "✅ Label 'auto-pullrequet' já existe."
+            fi
+
             # Cria PR novo para develop
             echo "🚀 Criando novo PR para develop"
             gh pr create \
@@ -51,11 +59,11 @@ jobs:
               --head "$BRANCH_NAME" \
               --title "Auto PR: Merge $BRANCH_NAME into develop" \
               --body "Este PR foi criado automaticamente após um push na branch $BRANCH_NAME." \
-              --label "auto-pr"
+              --label "auto-pullrequet"
             exit 0
           else
             echo "❌ Push permitido apenas em branches com prefixo 'feature/'"
             exit 1
           fi
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_PAT_Tuttino }}
+      GH_TOKEN: ${{ secrets.GH_PAT_Tuttino }}
