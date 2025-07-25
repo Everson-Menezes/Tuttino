@@ -48,14 +48,27 @@ resource "docker_container" "postgres" {
   }
 }
 
+resource "null_resource" "remove_old_backend" {
+  provisioner "local-exec" {
+    command = "docker rm -f tuttino-backend || true"
+  }
+}
+
 resource "docker_image" "backend" {
   name = "tuttino-backend:latest"
+
   build {
     context = abspath("${path.module}/../backend")
+    dockerfile = "Dockerfile"
   }
 }
 
 resource "docker_container" "backend" {
+  depends_on = [
+    docker_container.postgres,
+    null_resource.remove_old_backend
+  ]
+
   name  = "tuttino-backend"
   image = docker_image.backend.name
 
@@ -71,8 +84,6 @@ resource "docker_container" "backend" {
     name = docker_network.tuttino_net.name
   }
 
-  depends_on = [docker_container.postgres]
-
   ports {
     internal = 8000
     external = 8000
@@ -82,6 +93,14 @@ resource "docker_container" "backend" {
     host_path      = abspath("${path.module}/../backend")
     container_path = "/app"
   }
+
+  restart = "always"
+}
+
+resource "null_resource" "remove_old_nginx" {
+  provisioner "local-exec" {
+    command = "docker rm -f tuttino-nginx || true"
+  }
 }
 
 resource "docker_image" "nginx" {
@@ -89,14 +108,17 @@ resource "docker_image" "nginx" {
 }
 
 resource "docker_container" "nginx" {
+  depends_on = [
+    docker_container.backend,
+    null_resource.remove_old_nginx
+  ]
+
   name  = "tuttino-nginx"
   image = docker_image.nginx.name
 
   networks_advanced {
     name = docker_network.tuttino_net.name
   }
-
-  depends_on = [docker_container.backend]
 
   ports {
     internal = 80
@@ -107,4 +129,6 @@ resource "docker_container" "nginx" {
     host_path      = abspath("${path.module}/../nginx/conf.d")
     container_path = "/etc/nginx/conf.d"
   }
+
+  restart = "always"
 }

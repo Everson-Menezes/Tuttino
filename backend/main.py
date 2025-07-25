@@ -1,11 +1,12 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI
+from controllers.health_controller import router as health_router
+from controllers.home_controller import router as home_router
 
 app = FastAPI()
 
-home_router = APIRouter()
-
-@home_router.get("/home")
-async def home():
-    return {"message": "API is online and running"}
-
 app.include_router(home_router)
+app.include_router(health_router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
