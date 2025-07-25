@@ -1,0 +1,69 @@
+name: 1 - [Feature] Validate Branch Prefix and Create PR
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  validate-and-create-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install -y gh
+
+      - name: Extract branch name and actor
+        id: vars
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "ACTOR=${{ github.actor }}" >> $GITHUB_ENV
+
+      - name: Validate branch and create PR if needed
+        run: |
+          echo "🔍 Branch: $BRANCH_NAME"
+          echo "🔍 User: $ACTOR"
+
+          if [[ "$ACTOR" == "everson-menezes" ]]; then
+            echo "✅ Bypass: everson-menezes is allowed"
+            exit 0
+          fi
+
+          if [[ "$BRANCH_NAME" =~ ^feature/ ]]; then
+            echo "✅ Branch name is valid"
+
+            # Verifica se já existe PR aberto para essa branch
+            PR_EXISTS=$(gh pr list --head "$BRANCH_NAME" --base develop --state open --json number --jq '.[0]')
+            if [[ -n "$PR_EXISTS" ]]; then
+              echo "ℹ️ PR já existe (#$PR_EXISTS), será atualizado automaticamente com o push."
+              exit 0
+            fi
+
+            # Garante que a label auto-pullrequet existe
+            if ! gh label view auto-pullrequet >/dev/null 2>&1; then
+              echo "⚙️ Label 'auto-pullrequet' não encontrada. Criando..."
+              gh label create auto-pullrequet --color F1C40F --description "Auto generated PRs"
+            else
+              echo "✅ Label 'auto-pullrequet' já existe."
+            fi
+
+            # Cria PR novo para develop
+            echo "🚀 Criando novo PR para develop"
+            gh pr create \
+              --base develop \
+              --head "$BRANCH_NAME" \
+              --title "Auto PR: Merge $BRANCH_NAME into develop" \
+              --body "Este PR foi criado automaticamente após um push na branch $BRANCH_NAME." \
+              --label "auto-pullrequet"
+            exit 0
+          else
+            echo "❌ Push permitido apenas em branches com prefixo 'feature/'"
+            exit 1
+          fi
+    env:
+      GH_TOKEN: ${{ secrets.GH_PAT_Tuttino }}

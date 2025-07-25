@@ -1,0 +1,12 @@
+from fastapi import FastAPI
+from controllers.health_controller import router as health_router
+from controllers.home_controller import router as home_router
+
+app = FastAPI()
+
+app.include_router(home_router)
+app.include_router(health_router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
