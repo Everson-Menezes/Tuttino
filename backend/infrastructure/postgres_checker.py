@@ -1,4 +1,4 @@
-import asyncpg
+import aiopg
 
 class PostgresChecker:
     def __init__(self, user: str, password: str, database: str, host: str):
@@ -8,15 +8,13 @@ class PostgresChecker:
         self.host = host
 
     async def is_healthy(self) -> bool:
+        dsn = f"dbname={self.database} user={self.user} password={self.password} host={self.host}"
         try:
-            conn = await asyncpg.connect(
-                user=self.user,
-                password=self.password,
-                database=self.database,
-                host=self.host
-            )
-            await conn.execute("SELECT 1")
-            await conn.close()
+            async with aiopg.connect(dsn) as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT 1")
+                    await cur.fetchone()
             return True
         except Exception:
             return False
+        

@@ -54,13 +54,25 @@ resource "null_resource" "remove_old_backend" {
   }
 }
 
+resource "null_resource" "backend_build_trigger" {
+  # Sempre que algum desses arquivos mudar, o hash muda e força o rebuild
+  triggers = {
+   always_run = timestamp()
+  }
+}
+
 resource "docker_image" "backend" {
   name = "tuttino-backend:latest"
 
   build {
-    context = abspath("${path.module}/../backend")
-    dockerfile = "Dockerfile"
+    context    = abspath("${path.module}/../backend")
+    dockerfile = "dockerfile"
   }
+
+  depends_on = [
+    null_resource.backend_build_trigger,
+    null_resource.remove_old_backend_image
+  ]
 }
 
 resource "docker_container" "backend" {
@@ -91,7 +103,7 @@ resource "docker_container" "backend" {
 
   volumes {
     host_path      = abspath("${path.module}/../backend")
-    container_path = "/app"
+    container_path = "/backend"
   }
 
   restart = "always"
@@ -131,4 +143,11 @@ resource "docker_container" "nginx" {
   }
 
   restart = "always"
+}
+
+resource "null_resource" "remove_old_backend_image" {
+  provisioner "local-exec" {
+    command = "docker rmi -f tuttino-backend:latest || true"
+  }
+  depends_on = [null_resource.remove_old_backend]
 }
