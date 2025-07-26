@@ -141,12 +141,7 @@ resource "docker_container" "nginx" {
     internal = 80
     external = 80
   }
-
-volumes {
-  host_path      = abspath("${path.module}/../nginx/conf.d")
-  container_path = "/etc/nginx/conf.d"
-}
-
+  
   cpu_shares = 128
   memory     = 256
   restart    = "always"
