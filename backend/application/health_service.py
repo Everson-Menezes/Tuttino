@@ -1,4 +1,4 @@
-from domain.health_service_interface import IHealthService
+from interface.health_service_interface import IHealthService
 from infrastructure.postgres_checker import PostgresChecker
 
 class HealthService(IHealthService):

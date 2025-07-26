@@ -1,28 +1,30 @@
+# Terraform configuration for Tuttino project infrastructure
 terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = "~> 3.0.2"
+      version = "~> 3.0"
     }
   }
 }
 
-provider "docker" {
-  host = "unix:///var/run/docker.sock"
+# Volume persistente para PostgreSQL
+resource "docker_volume" "pgdata" {
+  name = "pgdata"
 }
 
+# Rede Docker interna
 resource "docker_network" "tuttino_net" {
   name = "tuttino_net"
 }
 
-resource "docker_volume" "pgdata" {
-  name = "tuttino_pgdata"
-}
-
+### Imagem do PostgreSQL
 resource "docker_image" "postgres" {
   name = "postgres:15-alpine"
 }
+#### Imagem do PostgreSQL
 
+### PostgreSQL container configuration
 resource "docker_container" "postgres" {
   name  = "tuttino-postgres"
   image = docker_image.postgres.name
@@ -46,39 +48,29 @@ resource "docker_container" "postgres" {
     internal = 5432
     external = 5432
   }
-}
 
-resource "null_resource" "remove_old_backend" {
-  provisioner "local-exec" {
-    command = "docker rm -f tuttino-backend || true"
-  }
+  cpu_shares = 512
+  memory     = 4096
+  restart    = "unless-stopped"
 }
+### PostgreSQL containerconfiguration
 
-resource "null_resource" "backend_build_trigger" {
-  # Sempre que algum desses arquivos mudar, o hash muda e força o rebuild
-  triggers = {
-   always_run = timestamp()
-  }
-}
 
+### Imagem do backend (FastAPI)
 resource "docker_image" "backend" {
-  name = "tuttino-backend:latest"
-
+  name = "tuttino-backend:latest" 
   build {
     context    = abspath("${path.module}/../backend")
     dockerfile = "dockerfile"
   }
-
-  depends_on = [
-    null_resource.backend_build_trigger,
-    null_resource.remove_old_backend_image
-  ]
 }
+### Imagem do backend (FastAPI)
 
+
+### Backend container configuration(FastAPI)
 resource "docker_container" "backend" {
   depends_on = [
-    docker_container.postgres,
-    null_resource.remove_old_backend
+    docker_container.postgres
   ]
 
   name  = "tuttino-backend"
@@ -106,23 +98,36 @@ resource "docker_container" "backend" {
     container_path = "/backend"
   }
 
-  restart = "always"
-}
+  cpu_shares = 256
+  memory     = 2048
+  restart    = "always"
 
-resource "null_resource" "remove_old_nginx" {
-  provisioner "local-exec" {
-    command = "docker rm -f tuttino-nginx || true"
+  command = [
+    "uvicorn",
+    "main:app",
+    "--host", "0.0.0.0",
+    "--port", "8000",
+    "--workers", "4"
+  ]
+}
+### Backend container configuration(FastAPI)
+
+
+### Imagem do Nginx
+resource "docker_image" "nginx" {
+  name = "nginx:latest"
+  build {
+    context    = abspath("${path.module}/../backend")
+    dockerfile = "dockerfile"
   }
 }
+### Imagem do Nginx
 
-resource "docker_image" "nginx" {
-  name = "nginx:stable-alpine"
-}
 
+### Nginx reverse proxy container configuration
 resource "docker_container" "nginx" {
   depends_on = [
-    docker_container.backend,
-    null_resource.remove_old_nginx
+    docker_container.backend
   ]
 
   name  = "tuttino-nginx"
@@ -137,17 +142,13 @@ resource "docker_container" "nginx" {
     external = 80
   }
 
-  volumes {
-    host_path      = abspath("${path.module}/../nginx/conf.d")
-    container_path = "/etc/nginx/conf.d"
-  }
-
-  restart = "always"
+volumes {
+  host_path      = abspath("${path.module}/../nginx/conf.d")
+  container_path = "/etc/nginx/conf.d"
 }
 
-resource "null_resource" "remove_old_backend_image" {
-  provisioner "local-exec" {
-    command = "docker rmi -f tuttino-backend:latest || true"
-  }
-  depends_on = [null_resource.remove_old_backend]
+  cpu_shares = 128
+  memory     = 256
+  restart    = "always"
 }
+### Nginx reverse proxy container configuration
