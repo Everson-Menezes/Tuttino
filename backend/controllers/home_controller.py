@@ -1,8 +1,7 @@
 # controllers/home_controller.py
 from fastapi import APIRouter, Depends
-
-from application.home_service import HomeService
 from interface.home_service_interface import IHomeService
+from application.home_service import HomeService
 
 router = APIRouter()
 
