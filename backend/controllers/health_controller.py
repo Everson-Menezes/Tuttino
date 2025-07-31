@@ -1,7 +1,8 @@
 # controllers/health_controller.py
 from fastapi import APIRouter, Depends, HTTPException
-from interface.health_service_interface import IHealthService
+
 from application.health_service import HealthService
+from interface.services.health_service_interface import IHealthService
 from infrastructure.postgres_checker import PostgresChecker
 
 router = APIRouter()

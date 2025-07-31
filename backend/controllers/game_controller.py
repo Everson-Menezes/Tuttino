@@ -1,9 +1,10 @@
 # controllers/games_controller.py
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
-from interface.game_service_interface import IGameService
+
 from application.game_service import GameService
 from domain.entities.game import Game
+from interface.services.game_service_interface import IGameService
 
 router = APIRouter()
 
