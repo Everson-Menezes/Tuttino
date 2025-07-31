@@ -18,17 +18,16 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: ⚙️ Terraform Init
-        run: terraform -chdir=terraform init
+        run: terraform -chdir=infra init
 
       - name: 🔍 Terraform Plan
-        run: terraform -chdir=terraform plan
+        run: terraform -chdir=infra plan
 
       - name: 🚀 Terraform Apply
-        run: terraform -chdir=terraform apply -auto-approve
+        run: terraform -chdir=infra apply -auto-approve
 
       - name: 🐳 Docker Compose Rebuild and Restart
         run: |
           docker-compose down --remove-orphans
           docker-compose pull || true  # ignora se não houver imagens remotas
           docker-compose up -d --build
-          docker-compose ps
