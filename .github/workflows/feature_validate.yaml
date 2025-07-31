@@ -47,7 +47,7 @@ jobs:
             # Garante que a label auto-pullrequet existe
             if ! gh label view auto-pullrequet >/dev/null 2>&1; then
               echo "⚙️ Label 'auto-pullrequet' não encontrada. Criando..."
-              gh label create auto-pullrequet --color F1C40F --description "Auto generated PRs"
+              gh label create auto-pullrequet --color F1C40F --description "Auto generated PRs" --force
             else
               echo "✅ Label 'auto-pullrequet' já existe."
             fi
