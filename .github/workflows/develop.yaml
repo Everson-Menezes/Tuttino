@@ -23,6 +23,9 @@ jobs:
       - name: 🔍 Terraform Plan
         run: terraform -chdir=infra plan
 
+      - name: 🧹 Remove existing Docker network if exists
+        run: docker network rm tuttino_net || true        
+
       - name: 🚀 Terraform Apply
         run: terraform -chdir=infra apply -auto-approve
 
