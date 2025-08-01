@@ -7,15 +7,16 @@ on:
 
 jobs:
   deploy-if-merged:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'feature/')
+    if: >
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'feature/') &&
+      (
+        contains(github.event.pull_request.changed_files, 'infra/') ||
+        contains(github.event.pull_request.changed_files, 'backend/')
+      )
     runs-on: self-hosted
 
     steps:
-      - name: 🧹 Cleanup orphan pyc/cache files
-        run: |
-          sudo find /home/everson/actions-runner/_work -type f -name "*.pyc" -delete || true
-          sudo find /home/everson/actions-runner/_work -type d -name "__pycache__" -exec rm -rf {} + || true
-
       - name: 📥 Checkout source
         uses: actions/checkout@v4
 
@@ -28,20 +29,25 @@ jobs:
       - name: 🔍 Terraform Plan
         run: terraform -chdir=infra plan
 
-      - name: 🧹 Remove existing Docker network if exists
-        run: docker network rm tuttino_net || true
-
-      - name: 🧹 Cleanup existing containers
-        run: |
-          docker rm -f tuttino-postgres || true
-          docker rm -f tuttino-backend || true
-          docker rm -f tuttino-nginx || true
-
       - name: 🚀 Terraform Apply
         run: terraform -chdir=infra apply -auto-approve
 
-      - name: 🐳 Build Docker Image
-        run: docker build -t tuttino-backend:latest -f backend/dockerfile ./backend
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: 🐳 Create Docker Network
-        run: docker network create tuttino_net || true        
+      - name: 🐳 Cache Docker layers (backend)
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-backend-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-backend-
+
+      - name: 🐳 Build Backend Image with Cache
+        run: |
+          docker build \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache \
+            -t tuttino-backend:latest \
+            -f backend/dockerfile backend
+
