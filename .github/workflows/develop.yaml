@@ -50,4 +50,3 @@ jobs:
             --cache-to=type=local,dest=/tmp/.buildx-cache \
             -t tuttino-backend:latest \
             -f backend/dockerfile backend
-
