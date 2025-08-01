@@ -35,8 +35,14 @@ jobs:
       - name: 🚀 Terraform Apply
         run: terraform -chdir=infra apply -auto-approve
 
-      - name: 🐳 Docker Compose Rebuild and Restart
+      - name: 🐳 Stop and Remove Existing Containers
         run: |
-          docker-compose down --remove-orphans
-          docker-compose pull || true  # ignora se não houver imagens remotas
-          docker-compose up -d --build
+          docker stop tuttino-backend || true
+          docker rm tuttino-backend || true
+          docker network rm tuttino_net || true
+
+      - name: 🐳 Build Docker Image
+        run: docker build -t tuttino-backend:latest -f backend/dockerfile .
+
+      - name: 🐳 Create Docker Network
+        run: docker network create tuttino_net || true
