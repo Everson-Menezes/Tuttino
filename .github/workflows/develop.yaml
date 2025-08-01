@@ -11,10 +11,15 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: 🧹 Cleanup orphan pyc/cache files
+        run: |
+          sudo find /home/everson/actions-runner/_work -type f -name "*.pyc" -delete || true
+          sudo find /home/everson/actions-runner/_work -type d -name "__pycache__" -exec rm -rf {} + || true
+
       - name: 📥 Checkout source
         uses: actions/checkout@v4
 
-      - name: 🧰 Set up Terraform (opcional, se não tiver global)
+      - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: ⚙️ Terraform Init
@@ -35,14 +40,8 @@ jobs:
       - name: 🚀 Terraform Apply
         run: terraform -chdir=infra apply -auto-approve
 
-      - name: 🐳 Stop and Remove Existing Containers
-        run: |
-          docker stop tuttino-backend || true
-          docker rm tuttino-backend || true
-          docker network rm tuttino_net || true
-
       - name: 🐳 Build Docker Image
-        run: docker build -t tuttino-backend:latest -f backend/dockerfile .
+        run: docker build -t tuttino-backend:latest -f backend/dockerfile ./backend
 
       - name: 🐳 Create Docker Network
-        run: docker network create tuttino_net || true
+        run: docker network create tuttino_net || true        
