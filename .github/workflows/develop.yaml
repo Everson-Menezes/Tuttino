@@ -6,16 +6,31 @@ on:
     branches: [develop]
 
 jobs:
-  deploy-if-merged:
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      infra_changed: ${{ steps.filter.outputs.infra }}
+      backend_changed: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            infra:
+              - 'infra/**'
+            backend:
+              - 'backend/**'
+
+  Merge-Validation:
+    needs: filter
     if: >
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.head.ref, 'feature/') &&
-      (
-        contains(github.event.pull_request.changed_files, 'infra/') ||
-        contains(github.event.pull_request.changed_files, 'backend/')
-      )
+      (needs.filter.outputs.infra_changed == 'true' || needs.filter.outputs.backend_changed == 'true')
     runs-on: self-hosted
-
+   
     steps:
       - name: 📥 Checkout source
         uses: actions/checkout@v4
