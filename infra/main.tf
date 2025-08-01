@@ -115,12 +115,13 @@ resource "docker_container" "backend" {
 
 ### Imagem do Nginx
 resource "docker_image" "nginx" {
-  name = "nginx:latest"
+  name = "tuttino-nginx:latest"
   build {
-    context    = abspath("${path.module}/../backend")
+    context    = abspath("${path.module}/../nginx")
     dockerfile = "dockerfile"
   }
 }
+
 ### Imagem do Nginx
 
 

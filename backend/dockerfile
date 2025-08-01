@@ -1,12 +1,16 @@
 FROM python:3.12-slim
 
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
 WORKDIR /backend
 
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Remove todo cache do pip e instala dependências limpas
-RUN pip cache purge \
-    && pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+RUN chown -R appuser:appgroup /backend
+USER appuser
 
 EXPOSE 8000
 
