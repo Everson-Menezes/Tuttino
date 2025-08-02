@@ -10,28 +10,28 @@ terraform {
 
 ###### Volume persistente para PostgreSQL ###### 
 resource "docker_volume" "pgdata" {
-  name = "pgdata"
+  name = "pgdata" ###### Volume para persistir dados do PostgreSQL
 }
 
 ###### Rede Docker interna ###### 
 resource "docker_network" "tuttino_net" {
-  name = "tuttino_net"
+  name = "tuttino_net" ###### Rede interna para comunicação entre containers
 }
 
 ###### Imagem do PostgreSQL ###### 
 resource "docker_image" "postgres" {
-  name = "postgres:15-alpine"
+  name = "postgres:15-alpine" ###### Imagem leve do PostgreSQL 15 baseada em Alpine
 }
 
 ###### Container PostgreSQL ###### 
 resource "docker_container" "postgres" {
-  name  = "tuttino-postgres"
-  image = docker_image.postgres.name
+  name  = "tuttino-postgres" ###### Nome do container PostgreSQL
+  image = docker_image.postgres.name ###### Usando a imagem do PostgreSQL definida acima
 
   env = [
-    "POSTGRES_USER=${var.db_user}",
-    "POSTGRES_PASSWORD=${var.db_pass}",
-    "POSTGRES_DB=${var.db_name}"
+    "POSTGRES_USER=${var.db_user}", ###### Variável de ambiente para usuário do PostgreSQL
+    "POSTGRES_PASSWORD=${var.db_pass}", ###### Variável de ambiente para senha do PostgreSQL
+    "POSTGRES_DB=${var.db_name}" ###### Variável de ambiente para nome do banco de dados
   ]
 
   volumes {
