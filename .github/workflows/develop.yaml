@@ -31,75 +31,16 @@ jobs:
               - 'infra/**'
 
   diagnose-runner:
-    needs: filter
-    if: >
-      github.event.pull_request.merged == true &&
-      (needs.filter.outputs.infra_changed == 'true' || needs.filter.outputs.backend_changed == 'true')
     runs-on: self-hosted
-    name: Diagnose Self-Hosted Runner
+    needs: filter
+    if: needs.filter.outputs.backend_changed == 'true' || needs.filter.outputs.infra_changed == 'true'
     steps:
-      - name: Print date/time
-        run: date
-
-      - name: Show runner user and permissions
+      - name: 🧰 Diagnose Runner
         run: |
-          whoami
-          id
-          groups
-          echo "HOME=$HOME"
-          echo "SHELL=$SHELL"
-          echo "PWD=$PWD"
-          ls -ld $PWD
-
-      - name: System Info
-        run: |
-          uname -a
-          lsb_release -a || cat /etc/os-release || echo "No OS info"
-          uptime
-          df -h
-          free -m
-
-      - name: Docker info
-        run: |
-          docker version
-          docker info
-          docker ps -a
-          docker images
-          docker network ls
-
-      - name: Network info
-        run: |
-          ip addr show
-          ip route show
-          cat /etc/resolv.conf
-          netstat -tulpen || ss -tulpen
-
-      - name: Check self-hosted runner logs and status (Linux systemd)
-        run: |
-          sudo systemctl status actions.runner.* || echo "No systemd service found"
-          sudo journalctl -u actions.runner.* --since "1 hour ago" --no-pager || echo "No logs available"
-
-      - name: Check resource usage
-        run: |
-          ps aux --sort=-%mem | head -n 10
-          ps aux --sort=-%cpu | head -n 10
-          free -h
-
-      - name: Test network connectivity
-        run: |
-          ping -c 3 8.8.8.8 || echo "Ping failed"
-          curl -sI http://localhost:8000 || echo "Curl to localhost failed"
-
-      - name: Environment variables
-        run: env | sort
-
-      - name: List directory and files with permissions
-        run: ls -la $PWD
-
-      - name: List docker-compose files (if any)
-        run: |
-          find $PWD -maxdepth 2 -name "docker-compose*.yml" -o -name "docker-compose*.yaml" || echo "No docker-compose files found"
-
+          echo "Runner: $RUNNER_NAME"
+          echo "OS: $RUNNER_OS"
+          echo "Labels: $RUNNER_LABELS"
+          echo "Environment Variables:"
   merge-validation:
     needs:
       - filter
