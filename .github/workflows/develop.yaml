@@ -5,27 +5,30 @@ on:
     types: [closed]
     branches: [develop]
 
-permissions:
-  contents: read
-  pull-requests: read
-
 jobs:
   filter:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
     outputs:
-      infra_changed: ${{ steps.filter.outputs.infra }}
       backend_changed: ${{ steps.filter.outputs.backend }}
+      infra_changed: ${{ steps.filter.outputs.infra }}
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Filter paths
+      - name: 📥 Checkout source
+        uses: actions/checkout@v4
+
+      - name: 📂 Check changed paths
         id: filter
         uses: dorny/paths-filter@v2
         with:
           filters: |
-            infra:
-              - 'infra/**'
             backend:
               - 'backend/**'
+            infra:
+              - 'infra/**'
 
   Merge-Validation:
     needs: filter
@@ -34,7 +37,7 @@ jobs:
       startsWith(github.event.pull_request.head.ref, 'feature/') &&
       (needs.filter.outputs.infra_changed == 'true' || needs.filter.outputs.backend_changed == 'true')
     runs-on: self-hosted
-   
+
     steps:
       - name: 📥 Checkout source
         uses: actions/checkout@v4
