@@ -1,4 +1,4 @@
-# Terraform configuration for Tuttino project infrastructure
+###### Terraform configuration for Tuttino project infrastructure
 terraform {
   required_providers {
     docker = {
@@ -8,23 +8,22 @@ terraform {
   }
 }
 
-# Volume persistente para PostgreSQL
+###### Volume persistente para PostgreSQL
 resource "docker_volume" "pgdata" {
   name = "pgdata"
 }
 
-# Rede Docker interna
+###### Rede Docker interna
 resource "docker_network" "tuttino_net" {
   name = "tuttino_net"
 }
 
-### Imagem do PostgreSQL
+###### Imagem do PostgreSQL
 resource "docker_image" "postgres" {
   name = "postgres:15-alpine"
 }
-#### Imagem do PostgreSQL
 
-### PostgreSQL container configuration
+###### Container PostgreSQL
 resource "docker_container" "postgres" {
   name  = "tuttino-postgres"
   image = docker_image.postgres.name
@@ -48,26 +47,23 @@ resource "docker_container" "postgres" {
     internal = 5432
     external = 5432
   }
-
-  cpu_shares = 512
+  cpu_shares = 1024 ###### 1 vCPU ###### PostgreSQL é o serviço mais pesado, então aloquei 1 vCPU
+  # PostgreSQL pode consumir mais memória dependendo da carga, mas 4GB é um
+  # valor razoável para a maioria dos casos de uso.
   memory     = 4096
   restart    = "unless-stopped"
 }
-### PostgreSQL containerconfiguration
 
-
-### Imagem do backend (FastAPI)
+###### Imagem do backend (FastAPI)
 resource "docker_image" "backend" {
-  name = "tuttino-backend:latest" 
+  name = "tuttino-backend:latest"
   build {
     context    = abspath("${path.module}/../backend")
     dockerfile = "dockerfile"
   }
 }
-### Imagem do backend (FastAPI)
 
-
-### Backend container configuration(FastAPI)
+###### Container Backend (FastAPI)
 resource "docker_container" "backend" {
   depends_on = [
     docker_container.postgres
@@ -98,7 +94,9 @@ resource "docker_container" "backend" {
     container_path = "/backend"
   }
 
-  cpu_shares = 256
+  cpu_shares = 768 ###### 0.75 vCPU ###### FastAPI é mais pesado que o Nginx, mas não tanto quanto o PostgreSQL
+  # O FastAPI pode consumir mais memória dependendo da carga, mas 2GB é um
+  # valor razoável para a maioria dos casos de uso.
   memory     = 2048
   restart    = "always"
 
@@ -107,13 +105,11 @@ resource "docker_container" "backend" {
     "main:app",
     "--host", "0.0.0.0",
     "--port", "8000",
-    "--workers", "4"
+    "--workers", "4" 
   ]
 }
-### Backend container configuration(FastAPI)
 
-
-### Imagem do Nginx
+###### Imagem do Nginx
 resource "docker_image" "nginx" {
   name = "tuttino-nginx:latest"
   build {
@@ -122,10 +118,7 @@ resource "docker_image" "nginx" {
   }
 }
 
-### Imagem do Nginx
-
-
-### Nginx reverse proxy container configuration
+###### Container Nginx
 resource "docker_container" "nginx" {
   depends_on = [
     docker_container.backend
@@ -142,9 +135,7 @@ resource "docker_container" "nginx" {
     internal = 80
     external = 80
   }
-  
-  cpu_shares = 128
+  cpu_shares = 256 ###### 0.25 vCPU ###### Nginx é leve e não precisa de muito poder de CPU
   memory     = 256
   restart    = "always"
 }
-### Nginx reverse proxy container configuration

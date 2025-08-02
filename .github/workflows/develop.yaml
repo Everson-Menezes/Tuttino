@@ -6,6 +6,8 @@ on:
     branches: [develop]
 
 jobs:
+  # This job filters the changes in the PR to determine if backend or infra files were modified
+  # If either of these directories has changes, the Merge-Validation job will run
   filter:
     runs-on: ubuntu-latest
     permissions:
