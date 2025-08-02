@@ -5,6 +5,10 @@ on:
     types: [closed]
     branches: [develop]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   filter:
     runs-on: ubuntu-latest
