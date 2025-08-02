@@ -96,7 +96,7 @@ resource "docker_container" "backend" {
   }
 
   volumes {
-    host_path      = abspath("${path.module}/../backend")
+    host_path      = "../backend/dockerfile"
     container_path = "/backend"
   }
 
@@ -118,8 +118,8 @@ resource "docker_container" "backend" {
 resource "docker_image" "nginx" {
   name = "tuttino-nginx:latest"
   build {
-    context    = abspath("${path.module}/../infra/nginx")
-    dockerfile = "dockerfile"
+    context    = abspath("${path.module}")               # /home/user/desktop/project/infra
+    dockerfile = "nginx/dockerfile"                      # arquivo dockerfile dentro da pasta infra/nginx
   }
 }
 
