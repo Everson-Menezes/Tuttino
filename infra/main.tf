@@ -1,4 +1,4 @@
-###### Terraform configuration for Tuttino project infrastructure
+###### Terraform configuration for Tuttino project infrastructure ###### 
 terraform {
   required_providers {
     docker = {
@@ -8,22 +8,22 @@ terraform {
   }
 }
 
-###### Volume persistente para PostgreSQL
+###### Volume persistente para PostgreSQL ###### 
 resource "docker_volume" "pgdata" {
   name = "pgdata"
 }
 
-###### Rede Docker interna
+###### Rede Docker interna ###### 
 resource "docker_network" "tuttino_net" {
   name = "tuttino_net"
 }
 
-###### Imagem do PostgreSQL
+###### Imagem do PostgreSQL ###### 
 resource "docker_image" "postgres" {
   name = "postgres:15-alpine"
 }
 
-###### Container PostgreSQL
+###### Container PostgreSQL ###### 
 resource "docker_container" "postgres" {
   name  = "tuttino-postgres"
   image = docker_image.postgres.name
@@ -54,7 +54,7 @@ resource "docker_container" "postgres" {
   restart    = "unless-stopped"
 }
 
-###### Imagem do backend (FastAPI)
+###### Imagem do backend (FastAPI) ###### 
 resource "docker_image" "backend" {
   name = "tuttino-backend:latest"
   build {
@@ -63,7 +63,7 @@ resource "docker_image" "backend" {
   }
 }
 
-###### Container Backend (FastAPI)
+###### Container Backend (FastAPI) ###### 
 resource "docker_container" "backend" {
   depends_on = [
     docker_container.postgres
@@ -109,7 +109,7 @@ resource "docker_container" "backend" {
   ]
 }
 
-###### Imagem do Nginx
+###### Imagem do Nginx ###### 
 resource "docker_image" "nginx" {
   name = "tuttino-nginx:latest"
   build {
@@ -118,7 +118,7 @@ resource "docker_image" "nginx" {
   }
 }
 
-###### Container Nginx
+###### Container Nginx ###### 
 resource "docker_container" "nginx" {
   depends_on = [
     docker_container.backend
