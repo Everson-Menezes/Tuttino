@@ -1,4 +1,3 @@
-### Terraform configuration for Tuttino project infrastructure ###
 terraform {
   required_providers {
     docker = {
@@ -10,7 +9,7 @@ terraform {
 
 ### Tuttino network (shared between containers) ###
 resource "docker_network" "tuttino_net" {
-  name = "tuttino_net"
+  name = var.docker_network_name != "" ? var.docker_network_name : "tuttino-${var.env}-net"
 
   lifecycle {
     prevent_destroy = true
@@ -19,17 +18,17 @@ resource "docker_network" "tuttino_net" {
 
 ### Persistent volume for PostgreSQL ###
 resource "docker_volume" "pgdata" {
-  name = "pgdata"
+  name = var.docker_volume_name != "" ? var.docker_volume_name : "pgdata-${var.env}"
 }
 
 ### PostgreSQL image (lightweight version based on Alpine) ###
 resource "docker_image" "postgres" {
-  name = "postgres:15-alpine"
+  name = var.postgres_image
 }
 
 ### PostgreSQL container ###
 resource "docker_container" "postgres" {
-  name  = "tuttino-postgres"
+  name  = "tuttino-postgres-${var.env}"
   image = docker_image.postgres.name
 
   env = [
@@ -52,7 +51,6 @@ resource "docker_container" "postgres" {
     external = 5432
   }
 
-  # PostgreSQL is the heaviest service — allocate 1 vCPU and 4GB RAM
   cpu_shares = 1024
   memory     = 4096
   restart    = "unless-stopped"
@@ -60,13 +58,12 @@ resource "docker_container" "postgres" {
 
 ### Backend image (FastAPI) ###
 resource "docker_image" "backend" {
-  name = "tuttino-backend:latest"
+  name = var.backend_image
   build {
     context    = abspath("${path.module}/../backend")
     dockerfile = "dockerfile"
   }
 }
-
 
 ### Backend container (FastAPI) ###
 resource "docker_container" "backend" {
@@ -74,11 +71,11 @@ resource "docker_container" "backend" {
     docker_container.postgres
   ]
 
-  name  = "tuttino-backend"
+  name  = "tuttino-backend-${var.env}"
   image = docker_image.backend.name
 
   env = [
-    "DB_HOST=tuttino-postgres",
+    "DB_HOST=tuttino-postgres-${var.env}",
     "DB_PORT=5432",
     "DB_NAME=${var.db_name}",
     "DB_USER=${var.db_user}",
@@ -91,10 +88,9 @@ resource "docker_container" "backend" {
 
   ports {
     internal = 8000
-    external = 8000
+    external = var.backend_port
   }
 
-  # Allocate 0.75 vCPU and 2GB RAM for backend
   cpu_shares = 768
   memory     = 2048
   restart    = "always"
@@ -110,13 +106,12 @@ resource "docker_container" "backend" {
 
 ### Nginx image ###
 resource "docker_image" "nginx" {
-  name = "tuttino-nginx:latest"
+  name         = var.nginx_image
   build {
-    context    = abspath("${path.module}")               # /home/user/desktop/project/infra
-    dockerfile = "nginx/dockerfile"                      # arquivo dockerfile dentro da pasta infra/nginx
+    context    = abspath("${path.module}/nginx")
+    dockerfile = "dockerfile"
   }
 }
-
 
 ### Nginx container ###
 resource "docker_container" "nginx" {
@@ -124,7 +119,7 @@ resource "docker_container" "nginx" {
     docker_container.backend
   ]
 
-  name  = "tuttino-nginx"
+  name  = "tuttino-nginx-${var.env}"
   image = docker_image.nginx.name
 
   networks_advanced {
@@ -133,10 +128,9 @@ resource "docker_container" "nginx" {
 
   ports {
     internal = 80
-    external = 80
+    external = var.nginx_port
   }
 
-  # Lightweight proxy, 0.25 vCPU and 256MB RAM
   cpu_shares = 256
   memory     = 256
   restart    = "always"

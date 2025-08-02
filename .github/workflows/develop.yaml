@@ -57,7 +57,6 @@ jobs:
       - name: 🧹 Cleanup old Docker containers and network
         run: |
           docker rm -f tuttino-postgres tuttino-backend tuttino-nginx || true
-          docker network rm tuttino_net || true
 
       - name: 🐳 Create Docker network if missing
         run: docker network create tuttino_net || true
@@ -89,3 +88,10 @@ jobs:
             --cache-to=type=local,dest=/tmp/.buildx-cache \
             -t tuttino-backend:latest \
             -f backend/dockerfile backend
+
+      - name: 🐳 Build Nginx Image
+        run: |
+          docker build \
+            -t tuttino-nginx:latest \
+            -f infra/nginx/dockerfile infra
+
