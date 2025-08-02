@@ -13,16 +13,6 @@ resource "docker_volume" "pgdata" {
   name = "pgdata"
 }
 
-### Docker internal network (shared between containers) ###
-resource "docker_network" "tuttino_net" {
-  name = "tuttino_net"
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-
 ### PostgreSQL image (lightweight version based on Alpine) ###
 resource "docker_image" "postgres" {
   name = "postgres:15-alpine"
