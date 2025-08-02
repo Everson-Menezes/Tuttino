@@ -58,10 +58,12 @@ resource "docker_container" "postgres" {
 
 ### Backend image (FastAPI) ###
 resource "docker_image" "backend" {
-  name = var.backend_image
+  name         = "tuttino-backend"
+  keep_locally = false
+
   build {
     context    = abspath("${path.module}/../backend")
-    dockerfile = "dockerfile"
+    dockerfile = "dockerfile_back"
   }
 }
 
@@ -109,7 +111,7 @@ resource "docker_image" "nginx" {
   name         = var.nginx_image
   build {
     context    = abspath("${path.module}/nginx")
-    dockerfile = "dockerfile"
+    dockerfile = "dockerfile_infra"
   }
 }
 
