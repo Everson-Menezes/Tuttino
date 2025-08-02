@@ -59,12 +59,12 @@ resource "docker_container" "postgres" {
   restart    = "unless-stopped"
 }
 
+### Backend image (FastAPI) ###
 resource "docker_image" "backend" {
   name = "tuttino-backend:latest"
-
   build {
-    context    = abspath("${path.module}/..") # <- contexto agora inclui a pasta backend/
-    dockerfile = "backend/dockerfile"         # <- Dockerfile dentro da pasta backend/
+    context    = abspath("${path.module}/../backend")
+    dockerfile = "dockerfile"  # tudo minúsculo, conforme seu arquivo
   }
 }
 
@@ -118,10 +118,11 @@ resource "docker_container" "backend" {
 resource "docker_image" "nginx" {
   name = "tuttino-nginx:latest"
   build {
-    context    = abspath("${path.module}/..") # <- contexto agora inclui a pasta backend/
-    dockerfile = "inginx/dockerfile"  # <- Dockerfile dentro da pasta nginx/
+    context    = abspath("${path.module}/../infra/nginx")
+    dockerfile = "dockerfile"  # tudo minúsculo também
   }
 }
+
 
 ### Nginx container ###
 resource "docker_container" "nginx" {
