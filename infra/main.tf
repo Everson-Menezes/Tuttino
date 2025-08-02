@@ -95,11 +95,6 @@ resource "docker_container" "backend" {
     external = 8000
   }
 
-  volumes {
-    host_path      = "../backend/dockerfile"
-    container_path = "/backend"
-  }
-
   # Allocate 0.75 vCPU and 2GB RAM for backend
   cpu_shares = 768
   memory     = 2048
