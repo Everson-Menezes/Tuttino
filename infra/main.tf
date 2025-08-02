@@ -15,8 +15,14 @@ resource "docker_volume" "pgdata" {
 
 ###### Rede Docker interna ###### 
 resource "docker_network" "tuttino_net" {
-  name = "tuttino_net" ###### Rede interna para comunicação entre containers
+  name = "tuttino_net"
+
+  lifecycle {
+    ignore_changes = all
+    prevent_destroy = true
+  }
 }
+
 
 ###### Imagem do PostgreSQL ###### 
 resource "docker_image" "postgres" {
@@ -113,7 +119,7 @@ resource "docker_container" "backend" {
 resource "docker_image" "nginx" {
   name = "tuttino-nginx:latest"
   build {
-    context    = abspath("${path.module}/../nginx")
+    context    = abspath("${path.module}/../infra/nginx")
     dockerfile = "dockerfile"
   }
 }
