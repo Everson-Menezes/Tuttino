@@ -8,6 +8,15 @@ terraform {
   }
 }
 
+### Tuttino network (shared between containers) ###
+resource "docker_network" "tuttino_net" {
+  name = "tuttino_net"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 ### Persistent volume for PostgreSQL ###
 resource "docker_volume" "pgdata" {
   name = "pgdata"
