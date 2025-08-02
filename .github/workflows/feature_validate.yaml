@@ -29,12 +29,14 @@ jobs:
           echo "🔍 Branch: $BRANCH_NAME"
           echo "🔍 User: $ACTOR"
 
+          # Bypass para você, Everson
           if [[ "$ACTOR" == "everson-menezes" ]]; then
             echo "✅ Bypass: everson-menezes is allowed"
             exit 0
           fi
 
-          if [[ "$BRANCH_NAME" =~ ^feature/ ]]; then
+          # Valida prefixos permitidos: feature/, bugfix/, hotfix/
+          if [[ "$BRANCH_NAME" =~ ^(feature|bugfix|hotfix)/ ]]; then
             echo "✅ Branch name is valid"
 
             # Verifica se já existe PR aberto para essa branch
@@ -62,7 +64,7 @@ jobs:
               --label "auto-pullrequet"
             exit 0
           else
-            echo "❌ Push permitido apenas em branches com prefixo 'feature/'"
+            echo "❌ Push permitido apenas em branches com prefixos 'feature/', 'bugfix/' ou 'hotfix/'"
             exit 1
           fi
     env:
