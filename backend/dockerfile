@@ -15,17 +15,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /backend
 
 # Copia apenas arquivos de dependência para cache
-COPY backend/pyproject.toml backend/poetry.lock* ./
+COPY pyproject.toml poetry.lock* ./
 
 # Instala Poetry
 RUN pip install poetry
 
-# Instala dependências
 RUN poetry config virtualenvs.create false && \
     poetry install --no-root --only main
 
 # Copia o restante da aplicação
-COPY /backend/ .
+COPY . .
 
 # Expõe a porta
 EXPOSE 8000
