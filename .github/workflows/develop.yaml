@@ -42,6 +42,14 @@ jobs:
       - name: 📥 Checkout source
         uses: actions/checkout@v4
 
+      - name: 🧹 Cleanup old Docker containers and network
+        run: |
+          docker rm -f tuttino-postgres tuttino-backend tuttino-nginx || true
+          docker network rm tuttino_net || true
+
+      - name: 🐳 Create Docker network if missing
+        run: docker network create tuttino_net || true
+
       - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
