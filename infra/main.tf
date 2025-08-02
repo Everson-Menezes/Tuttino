@@ -1,4 +1,4 @@
-###### Terraform configuration for Tuttino project infrastructure ###### 
+### Terraform configuration for Tuttino project infrastructure ###
 terraform {
   required_providers {
     docker = {
@@ -8,36 +8,35 @@ terraform {
   }
 }
 
-###### Volume persistente para PostgreSQL ###### 
+### Persistent volume for PostgreSQL ###
 resource "docker_volume" "pgdata" {
-  name = "pgdata" ###### Volume para persistir dados do PostgreSQL
+  name = "pgdata"
 }
 
-###### Rede Docker interna ###### 
+### Docker internal network (shared between containers) ###
 resource "docker_network" "tuttino_net" {
   name = "tuttino_net"
 
   lifecycle {
-    ignore_changes = all
-    prevent_destroy = true
+    ignore_changes   = all
+    prevent_destroy  = true
   }
 }
 
-
-###### Imagem do PostgreSQL ###### 
+### PostgreSQL image (lightweight version based on Alpine) ###
 resource "docker_image" "postgres" {
-  name = "postgres:15-alpine" ###### Imagem leve do PostgreSQL 15 baseada em Alpine
+  name = "postgres:15-alpine"
 }
 
-###### Container PostgreSQL ###### 
+### PostgreSQL container ###
 resource "docker_container" "postgres" {
-  name  = "tuttino-postgres" ###### Nome do container PostgreSQL
-  image = docker_image.postgres.name ###### Usando a imagem do PostgreSQL definida acima
+  name  = "tuttino-postgres"
+  image = docker_image.postgres.name
 
   env = [
-    "POSTGRES_USER=${var.db_user}", ###### Variável de ambiente para usuário do PostgreSQL
-    "POSTGRES_PASSWORD=${var.db_pass}", ###### Variável de ambiente para senha do PostgreSQL
-    "POSTGRES_DB=${var.db_name}" ###### Variável de ambiente para nome do banco de dados
+    "POSTGRES_USER=${var.db_user}",
+    "POSTGRES_PASSWORD=${var.db_pass}",
+    "POSTGRES_DB=${var.db_name}"
   ]
 
   volumes {
@@ -53,14 +52,14 @@ resource "docker_container" "postgres" {
     internal = 5432
     external = 5432
   }
-  cpu_shares = 1024 ###### 1 vCPU ###### PostgreSQL é o serviço mais pesado, então aloquei 1 vCPU
-  # PostgreSQL pode consumir mais memória dependendo da carga, mas 4GB é um
-  # valor razoável para a maioria dos casos de uso.
+
+  # PostgreSQL is the heaviest service — allocate 1 vCPU and 4GB RAM
+  cpu_shares = 1024
   memory     = 4096
   restart    = "unless-stopped"
 }
 
-###### Imagem do backend (FastAPI) ###### 
+### Backend image (FastAPI) ###
 resource "docker_image" "backend" {
   name = "tuttino-backend:latest"
   build {
@@ -69,7 +68,7 @@ resource "docker_image" "backend" {
   }
 }
 
-###### Container Backend (FastAPI) ###### 
+### Backend container (FastAPI) ###
 resource "docker_container" "backend" {
   depends_on = [
     docker_container.postgres
@@ -100,9 +99,8 @@ resource "docker_container" "backend" {
     container_path = "/backend"
   }
 
-  cpu_shares = 768 ###### 0.75 vCPU ###### FastAPI é mais pesado que o Nginx, mas não tanto quanto o PostgreSQL
-  # O FastAPI pode consumir mais memória dependendo da carga, mas 2GB é um
-  # valor razoável para a maioria dos casos de uso.
+  # Allocate 0.75 vCPU and 2GB RAM for backend
+  cpu_shares = 768
   memory     = 2048
   restart    = "always"
 
@@ -111,11 +109,11 @@ resource "docker_container" "backend" {
     "main:app",
     "--host", "0.0.0.0",
     "--port", "8000",
-    "--workers", "4" 
+    "--workers", "4"
   ]
 }
 
-###### Imagem do Nginx ###### 
+### Nginx image ###
 resource "docker_image" "nginx" {
   name = "tuttino-nginx:latest"
   build {
@@ -124,7 +122,7 @@ resource "docker_image" "nginx" {
   }
 }
 
-###### Container Nginx ###### 
+### Nginx container ###
 resource "docker_container" "nginx" {
   depends_on = [
     docker_container.backend
@@ -141,7 +139,9 @@ resource "docker_container" "nginx" {
     internal = 80
     external = 80
   }
-  cpu_shares = 256 ###### 0.25 vCPU ###### Nginx é leve e não precisa de muito poder de CPU
+
+  # Lightweight proxy, 0.25 vCPU and 256MB RAM
+  cpu_shares = 256
   memory     = 256
   restart    = "always"
 }
