@@ -41,6 +41,7 @@ jobs:
           echo "OS: $RUNNER_OS"
           echo "Labels: $RUNNER_LABELS"
           echo "Environment Variables:"
+
   merge-validation:
     needs:
       - filter
@@ -57,9 +58,7 @@ jobs:
       - name: 🧹 Cleanup old Docker containers and network
         run: |
           docker rm -f tuttino-postgres tuttino-backend tuttino-nginx || true
-
-      - name: 🐳 Create Docker network if missing
-        run: docker network create tuttino_net || true
+          docker network rm tuttino-dev-net || true
 
       - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -94,4 +93,3 @@ jobs:
           docker build \
             -t tuttino-nginx:latest \
             -f infra/nginx/dockerfile infra
-
