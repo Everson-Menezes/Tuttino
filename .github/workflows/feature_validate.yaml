@@ -3,7 +3,8 @@ name: 1 - [Feature] Validate Branch Prefix and Create PR
 on:
   push:
     branches:
-      - '**'
+      - 'feature/**'
+      - 'hotfix/**'
 
 jobs:
   validate-and-create-pr:
