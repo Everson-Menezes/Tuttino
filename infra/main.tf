@@ -18,10 +18,10 @@ resource "docker_network" "tuttino_net" {
   name = "tuttino_net"
 
   lifecycle {
-    ignore_changes   = all
-    prevent_destroy  = true
+    prevent_destroy = true
   }
 }
+
 
 ### PostgreSQL image (lightweight version based on Alpine) ###
 resource "docker_image" "postgres" {
@@ -64,7 +64,7 @@ resource "docker_image" "backend" {
   name = "tuttino-backend:latest"
   build {
     context    = abspath("${path.module}/../backend")
-    dockerfile = "dockerfile"  # tudo minúsculo, conforme seu arquivo
+    dockerfile = "dockerfile"
   }
 }
 
@@ -119,7 +119,7 @@ resource "docker_image" "nginx" {
   name = "tuttino-nginx:latest"
   build {
     context    = abspath("${path.module}/../infra/nginx")
-    dockerfile = "dockerfile"  # tudo minúsculo também
+    dockerfile = "dockerfile"
   }
 }
 
