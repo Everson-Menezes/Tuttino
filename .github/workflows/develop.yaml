@@ -31,7 +31,8 @@ jobs:
               - 'infra/**'
 
   deploy-dev:
-    needs: validate-changes
+    needs:
+      - validate-changes
     if: >
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.head.ref, 'feature/') &&
@@ -42,6 +43,13 @@ jobs:
     steps:
       - name: 📥 Checkout source
         uses: actions/checkout@v4
+
+      - name: 🧹 Cleanup old Docker containers and network
+        run: |
+          echo "Removing old containers if they exist..."
+          docker rm -f tuttino-postgres-${{ env.ENVIRONMENT }} tuttino-backend-${{ env.ENVIRONMENT }} tuttino-nginx-${{ env.ENVIRONMENT }} || true
+          echo "Removing old Docker network if it exists..."
+          docker network rm tuttino-${{ env.ENVIRONMENT }}-net || true
 
       - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
