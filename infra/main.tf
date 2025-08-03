@@ -43,7 +43,7 @@ resource "docker_container" "postgres" {
   }
 
   networks_advanced {
-    name = docker_network.tuttino_net.name
+    name = "tuttino-dev-net" # ou "tuttino_net" se quiser o nome fixo
   }
 
   ports {
@@ -85,7 +85,7 @@ resource "docker_container" "backend" {
   ]
 
   networks_advanced {
-    name = docker_network.tuttino_net.name
+    name = "tuttino-dev-net"
   }
 
   ports {
@@ -125,7 +125,7 @@ resource "docker_container" "nginx" {
   image = docker_image.nginx.name
 
   networks_advanced {
-    name = docker_network.tuttino_net.name
+    name = "tuttino-dev-net"
   }
 
   ports {

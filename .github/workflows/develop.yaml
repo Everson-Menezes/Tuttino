@@ -58,7 +58,7 @@ jobs:
       - name: 🧹 Cleanup old Docker containers and network
         run: |
           docker rm -f tuttino-postgres tuttino-backend tuttino-nginx || true
-          docker network rm tuttino-dev-net || true
+          docker network rm -f tuttino-dev-net tuttino-net || true
 
       - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
