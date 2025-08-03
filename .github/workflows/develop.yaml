@@ -74,19 +74,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-backend-
 
-      - name: 🐳 Build Backend Image with Cache
-        run: |
-          docker build \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache \
-            -t tuttino-backend:latest \
-            -f backend/dockerfile backend
-
       - name: 🐳 Build Nginx Image
         run: |
           docker build \
             -t tuttino-nginx:latest \
             -f infra/nginx/dockerfile infra
-
-      - name: 🐳 Create Docker network if missing
-        run: docker network create tuttino-${{ env.ENVIRONMENT }}-net || true

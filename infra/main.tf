@@ -1,4 +1,5 @@
 #### TuttiNo Infra Configuration ####
+# This file contains the Terraform configuration for the TuttiNo infrastructure.
 terraform {
   required_providers {
     docker = {
