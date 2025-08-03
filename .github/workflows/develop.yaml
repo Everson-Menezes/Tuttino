@@ -31,8 +31,7 @@ jobs:
               - 'infra/**'
 
   deploy-dev:
-    needs:
-      - validate-changes
+    needs: validate-changes
     if: >
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.head.ref, 'feature/') &&
@@ -44,13 +43,6 @@ jobs:
       - name: 📥 Checkout source
         uses: actions/checkout@v4
 
-      - name: 🧹 Cleanup old Docker containers and network
-        run: |
-          echo "Removing old containers if they exist..."
-          docker rm -f tuttino-postgres-${{ env.ENVIRONMENT }} tuttino-backend-${{ env.ENVIRONMENT }} tuttino-nginx-${{ env.ENVIRONMENT }} || true
-          echo "Removing old Docker network if it exists..."
-          docker network rm tuttino-${{ env.ENVIRONMENT }}-net || true
-
       - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
@@ -59,23 +51,3 @@ jobs:
 
       - name: 🚀 Terraform Apply
         run: terraform -chdir=infra apply -auto-approve
-
-      - name: 🐳 Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container
-
-
-      - name: 🐳 Cache Docker layers (backend)
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-backend-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-backend-
-
-      - name: 🐳 Build Nginx Image
-        run: |
-          docker build \
-            -t tuttino-nginx:latest \
-            -f infra/nginx/dockerfile_infra
