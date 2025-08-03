@@ -62,6 +62,9 @@ jobs:
 
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
 
       - name: 🐳 Cache Docker layers (backend)
         uses: actions/cache@v4
