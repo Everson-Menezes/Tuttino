@@ -6,7 +6,7 @@ on:
     branches: [develop]
 
 jobs:
-  filter:
+  Validate Infra/Backend Changes:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,66 +30,60 @@ jobs:
             infra:
               - 'infra/**'
 
-  diagnose-runner:
-    runs-on: self-hosted
-    needs: filter
-    if: needs.filter.outputs.backend_changed == 'true' || needs.filter.outputs.infra_changed == 'true'
-    steps:
-      - name: 🧰 Diagnose Runner
-        run: |
-          echo "Runner: $RUNNER_NAME"
-          echo "OS: $RUNNER_OS"
-          echo "Labels: $RUNNER_LABELS"
-          echo "Environment Variables:"
-
   merge-validation:
-    needs:
-      - filter
-      - diagnose-runner
-    if: >
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'feature/') &&
-      (needs.filter.outputs.infra_changed == 'true' || needs.filter.outputs.backend_changed == 'true')
-    runs-on: self-hosted
-    steps:
-      - name: 📥 Checkout source
-        uses: actions/checkout@v4
+  needs:
+    - filter
+  if: >
+    github.event.pull_request.merged == true &&
+    startsWith(github.event.pull_request.head.ref, 'feature/') &&
+    (needs.filter.outputs.infra_changed == 'true' || needs.filter.outputs.backend_changed == 'true')
+  runs-on: self-hosted  
+  steps:
+    - name: 📥 Checkout source
+      uses: actions/checkout@v4
 
-      - name: 🧹 Cleanup old Docker containers and network
-        run: |
-          docker rm -f tuttino-postgres tuttino-backend tuttino-nginx || true
-          docker network rm -f tuttino-dev-net tuttino-net || true
+    - name: 🧹 Cleanup old Docker containers and network
+      run: |
+        echo "Removing old containers if they exist..."
+        docker rm -f tuttino-postgres-${{ env.ENVIRONMENT }} tuttino-backend-${{ env.ENVIRONMENT }} tuttino-nginx-${{ env.ENVIRONMENT }} || true
+        echo "Removing old Docker network if it exists..."
+        docker network rm tuttino-${{ env.ENVIRONMENT }}-net || true
 
-      - name: 🧰 Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+    - name: 🧰 Set up Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      - name: ⚙️ Terraform Init
-        run: terraform -chdir=infra init
+    - name: ⚙️ Terraform Init
+      run: terraform -chdir=infra init
 
-      - name: 🚀 Terraform Apply
-        run: terraform -chdir=infra apply -auto-approve
+    - name: 🚀 Terraform Apply
+      run: terraform -chdir=infra apply -auto-approve
 
-      - name: 🐳 Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: 🐳 Cache Docker layers (backend)
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-backend-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-backend-
+    - name: 🐳 Cache Docker layers (backend)
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-backend-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-backend-
 
-      - name: 🐳 Build Backend Image with Cache
-        run: |
-          docker build \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache \
-            -t tuttino-backend:latest \
-            -f backend/dockerfile backend
+    - name: 🐳 Build Backend Image with Cache
+      run: |
+        docker build \
+          --cache-from=type=local,src=/tmp/.buildx-cache \
+          --cache-to=type=local,dest=/tmp/.buildx-cache \
+          -t tuttino-backend:latest \
+          -f backend/dockerfile backend
 
-      - name: 🐳 Build Nginx Image
-        run: |
-          docker build \
-            -t tuttino-nginx:latest \
-            -f infra/nginx/dockerfile infra
+    - name: 🐳 Build Nginx Image
+      run: |
+        docker build \
+          -t tuttino-nginx:latest \
+          -f infra/nginx/dockerfile infra
+    
+    - name: 🐳 Create Docker network if missing
+      run: docker network create tuttino-${{ env.ENVIRONMENT }}-net || true
+  env:
+    ENVIRONMENT: dev
