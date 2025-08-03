@@ -78,4 +78,4 @@ jobs:
         run: |
           docker build \
             -t tuttino-nginx:latest \
-            -f infra/nginx/dockerfile infra
+            -f infra/nginx/dockerfile_infra
