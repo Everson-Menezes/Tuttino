@@ -1,12 +1,13 @@
 from typing import List, Optional
+
 from domain.entities.tuttino_quest import TuttinoQuest
-from interface.tuttino_quest_service_interface import ITuttinoQuestService
-from infrastructure.repositories.tuttino_quest_repository import TuttinoQuestRepository
+from interface.services.tuttino_quest_service_interface import ITuttinoQuestService
+from infrastructure.repositories.tuttino_quest_repository import ITuttinoQuestRepository
 
 class TuttinoQuestService(ITuttinoQuestService):
 
     def __init__(self):
-        self.repository = TuttinoQuestRepository()
+        self.repository = ITuttinoQuestRepository()
 
     async def get_all_quests(self) -> List[TuttinoQuest]:
         return await self.repository.list_all()

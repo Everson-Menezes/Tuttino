@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Cria diretório de trabalho
-WORKDIR /app
+WORKDIR /backend
 
 # Copia e instala dependências do projeto
 COPY requirements.txt .

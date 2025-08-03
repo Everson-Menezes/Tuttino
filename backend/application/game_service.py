@@ -1,7 +1,10 @@
 from typing import List, Optional
-from interface.game_service_interface import IGameService
+
 from domain.entities.game import Game
 from infrastructure.repositories.games_repository import GameRepository
+
+
+from interface.services.game_service_interface import IGameService
 
 class GameService(IGameService):
     def __init__(self):
