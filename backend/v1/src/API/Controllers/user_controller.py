@@ -1,16 +1,16 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Header
-from fastapi.security import OAuth2PasswordRequestForm
 from typing import Optional
 import jwt
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 
-from backend.v1.src.Domain.Repositories.user_repository import InMemoryUserRepository
-from backend.v1.src.Domain.Services.authentication_service import AuthenticationService
-from backend.v1.src.Application.Services.user_service import UserService
-from backend.v1.src.Application.Handlers.register_handler import RegisterHandler
-from backend.v1.src.Application.Handlers.login_handler import LoginHandler
-from backend.v1.src.Application.Handlers.user_data_handler import UserDataHandler
+from v1.src.Domain.Repositories.user_repository import InMemoryUserRepository
+from v1.src.Domain.Services.authentication_service import AuthenticationService
+from v1.src.Application.Services.user_service import UserService
+from v1.src.Application.Handlers.register_handler import RegisterHandler
+from v1.src.Application.Handlers.login_handler import LoginHandler
+from v1.src.Application.Handlers.user_data_handler import UserDataHandler
+from v1.src.Infrastructure.Configurations.jwt_config import JWTConfig
 
-app = FastAPI()
+router = APIRouter()
 
 user_repo = InMemoryUserRepository()
 auth_service = AuthenticationService(JWTConfig.SECRET_KEY)

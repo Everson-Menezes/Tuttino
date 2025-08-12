@@ -1,7 +1,5 @@
-
-
-from backend.v1.src.Application.DTOs.userDTO import UserDTO
-from backend.v1.src.Application.Services.user_service import UserService
+from v1.src.Application.DTOs.userDTO import UserDTO
+from v1.src.Application.Services.user_service import UserService
 
 
 class RegisterHandler:

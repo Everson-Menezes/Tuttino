@@ -1,11 +1,11 @@
 import uuid
 
 
-from backend.v1.src.Application.DTOs.userDTO import UserDTO, user_to_dto
-from backend.v1.src.Domain.Entities.user import User
-from backend.v1.src.Domain.Entities.email import Email
-from backend.v1.src.Domain.Entities.password import Password
-from backend.v1.src.Domain.Entities.profile import Profile
+from v1.src.Application.DTOs.userDTO import UserDTO, user_to_dto
+from v1.src.Domain.Entities.user import User
+from v1.src.Domain.Entities.email import Email
+from v1.src.Domain.Entities.password import Password
+from v1.src.Domain.Entities.profile import Profile
 
 
 class UserService:

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from backend.v1.src.Domain.Entities.user import User
+from v1.src.Domain.Entities.user import User
 
 
 

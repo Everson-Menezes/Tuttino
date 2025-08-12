@@ -1,5 +1,5 @@
-from backend.v1.src.Application.DTOs.userDTO import UserDTO
-from backend.v1.src.Domain.Entities.user import User
+from v1.src.Application.DTOs.userDTO import UserDTO
+from v1.src.Domain.Entities.user import User
 
 def user_to_dto(user: User) -> UserDTO:
     return UserDTO(

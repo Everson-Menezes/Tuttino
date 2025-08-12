@@ -1,8 +1,8 @@
 from typing import Optional
 
-from backend.v1.src.Domain.Entities.password import Email
-from backend.v1.src.Domain.Entities.user import User
-from backend.v1.src.Domain.Repositories.user_repository import IUserRepository
+from v1.src.Domain.Entities.password import Email
+from v1.src.Domain.Entities.user import User
+from v1.src.Domain.Repositories.user_repository import IUserRepository
 
 class InMemoryUserRepository(IUserRepository):
     def __init__(self):

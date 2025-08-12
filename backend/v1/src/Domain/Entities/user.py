@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from backend.v1.src.Domain.Entities import Email
-from backend.v1.src.Domain.Entities import Password
-from backend.v1.src.Domain.Entities import Profile
+from v1.src.Domain.Entities import Email
+from v1.src.Domain.Entities import Password
+from v1.src.Domain.Entities import Profile
 
 
 @dataclass
