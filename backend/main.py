@@ -10,3 +10,5 @@ app.include_router(game_router)
 app.include_router(health_router)
 app.include_router(home_router)
 app.include_router(tuttino_quest_router)
+app.include_router(user)
+
